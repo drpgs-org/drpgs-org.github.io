@@ -1,0 +1,17 @@
+stages:
+  - build
+  - deploy
+
+build-image:
+  stage: build
+  script:
+    - docker build -t drpgs-org:1.0.0.%CI_PIPELINE_ID% --label "name=drpgs-org" --label "version=1.0.0.%CI_PIPELINE_ID%" .
+  only:
+    - master
+
+deploy-container:
+  stage: deploy
+  script:
+    - docker stop drpgs-org | (exit 0) && docker rm drpgs-org | (exit 0)
+    - docker run -d --name drpgs-org -p 2332:80 drpgs-org:1.0.0.%CI_PIPELINE_ID%
+    - docker image prune -a -f --filter "label=name=drpgs-org"
